@@ -18,9 +18,10 @@ namespace wyp {
         }
     };
 
-    template<class T>
+    template<class T, class Ref>
     struct _list_iterator {
         typedef list_node<T> node;
+        typedef _list_iterator<T, Ref> self;
         node *_p_node;
 
         _list_iterator(node *pn)
@@ -28,25 +29,64 @@ namespace wyp {
 
         }
 
-        T &operator*() {
+        Ref operator*() {
             return _p_node->_data;
         }
 
-        _list_iterator<T> operator++() {
+        self &operator++() {
             _p_node = _p_node->_next;
             return *this;
         }
 
-        bool operator!=(const _list_iterator<T> &it) {
+        self &operator--() {
+            _p_node = _p_node->_prev;
+            return *this;
+        }
+
+        bool operator!=(const self &it) {
             return _p_node != it._p_node;
         }
     };
+
+#if 0
+    const迭代器普通写法
+    template<class T>
+    struct _list_const_iterator {
+        typedef list_node<T> const_node;
+        const_node *p_const_node;
+
+        _list_const_iterator(const_node *pcn)
+                : p_const_node(pcn) {
+
+        }
+
+        const T &operator*() {
+            return p_const_node->_data;
+        }
+
+        _list_const_iterator<T> &operator++() {
+            p_const_node = p_const_node->_next;
+            return *this;
+        }
+
+        _list_const_iterator<T> &operator--(){
+            p_const_node = p_const_node->_prev;
+            return *this;
+        }
+
+        bool operator!=(const _list_const_iterator<T> lt) {
+            return p_const_node != lt.p_const_node;
+        }
+    };
+
+#endif
 
     template<class T>
     class list {
         typedef list_node<T> node;
     public:
-        typedef _list_iterator<T> iterator;
+        typedef _list_iterator<T, T&> iterator;
+        typedef _list_iterator <T, const T&> const_iterator;
 
         iterator begin() {
             return iterator(_head->_next);
@@ -56,21 +96,105 @@ namespace wyp {
             return iterator(_head);
         }
 
-        list() {
+        const_iterator begin() const {
+            return const_iterator(_head->_next);
+        }
+
+        const_iterator end() const {
+            return const_iterator(_head);
+        }
+
+        void empty_initialize(){
             _head = new node(T());
             _head->_next = _head;
             _head->_prev = _head;
         }
 
-        void push_back(T val) {
-            node *new_node = new node(T());
-            new_node->_data = val;
-            node *tail = _head->_prev;
+        void push_back(const T val) {
+//            node *new_node = new node(T());
+//            new_node->_data = val;
+//            node *tail = _head->_prev;
+//
+//            new_node->_next = _head;
+//            new_node->_prev = tail;
+//            tail->_next = new_node;
+//            _head->_prev = new_node;
 
-            new_node->_next = _head;
-            new_node->_prev = tail;
-            tail->_next = new_node;
-            _head->_prev = new_node;
+            insert(end(), val);
+        }
+
+        void push_front(const T val) {
+            insert(begin(), val);
+        }
+
+        void pop_front() {
+            erase(begin());
+        }
+
+        void pop_back() {
+            erase(--end());
+        }
+
+        iterator insert(iterator pos, const T &val) {
+            node *new_node = new node(val);
+            node *cur = pos._p_node;
+            node *prev = cur->_prev;
+
+            new_node->_next = cur;
+            new_node->_prev = prev;
+            prev->_next = new_node;
+            cur->_prev = new_node;
+
+            return iterator(new_node);
+        }
+
+        iterator erase(iterator pos) {
+            assert(pos != end());
+
+            node *prev = pos._p_node->_prev;
+            node *next = pos._p_node->_next;
+
+            prev->_next = next;
+            next->_prev = prev;
+
+            delete pos._p_node;
+
+            return iterator(next);
+        }
+
+        void clear() {
+            iterator it = begin();
+            while (it != end()) {
+                it = erase(it);
+            }
+        }
+
+        list() {
+            empty_initialize();
+        }
+
+        list(const list<T> &lt) {
+            empty_initialize();
+
+            for (const auto &e: lt) {
+                push_back(e);
+            }
+        }
+
+        list<T> &operator=(const list<T> &lt) {
+            if (this != &lt) {
+                clear();
+                for (const auto &e: lt) {
+                    push_back(e);
+                }
+            }
+            return *this;
+        }
+
+        ~list() {
+            clear();
+            delete _head;
+            _head = nullptr;
         }
 
     private:
