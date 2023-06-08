@@ -73,8 +73,38 @@ void test_list3() {
     std::cout << std::endl;
 }
 
+void test_list4() {
+    wyp::list<int> lt;
+    lt.push_back(1);
+    lt.push_back(2);
+    lt.push_back(3);
+    lt.push_back(4);
+    lt.push_back(5);
+    for (auto e: lt) {
+        std::cout << e << " ";
+    }
+    std::cout << std::endl;
+
+    wyp::list<int> lt1(lt);
+    for (auto e: lt1) {
+        std::cout << e << " ";
+    }
+    std::cout << std::endl;
+
+    wyp::list<int> lt2;
+    lt2 = lt;
+    for (auto e: lt2) {
+        std::cout << e << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << lt.size() << std::endl;
+    std::cout << lt1.size() << std::endl;
+    std::cout << lt2.size() << std::endl;
+}
+
 int main() {
-    test_list3();
+    test_list4();
 
     return 0;
 }

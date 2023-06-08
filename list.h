@@ -18,10 +18,10 @@ namespace wyp {
         }
     };
 
-    template<class T, class Ref>
+    template<class T, class Ref, class Ptr>
     struct _list_iterator {
         typedef list_node<T> node;
-        typedef _list_iterator<T, Ref> self;
+        typedef _list_iterator<T, Ref, Ptr> self;
         node *_p_node;
 
         _list_iterator(node *pn)
@@ -38,13 +38,33 @@ namespace wyp {
             return *this;
         }
 
+        self operator++(int) {
+            self tmp(*this);
+            _p_node = _p_node->_next;
+            return tmp;
+        }
+
         self &operator--() {
             _p_node = _p_node->_prev;
             return *this;
         }
 
-        bool operator!=(const self &it) {
+        self operator--(int) {
+            self tmp(*this);
+            _p_node = _p_node->_prev;
+            return tmp;
+        }
+
+        Ptr operator->() {
+            return &_p_node->_data;
+        }
+
+        bool operator!=(const self &it) const {
             return _p_node != it._p_node;
+        }
+
+        bool operator==(const self &it) const {
+            return _p_node == it._p_node;
         }
     };
 
@@ -85,8 +105,8 @@ namespace wyp {
     class list {
         typedef list_node<T> node;
     public:
-        typedef _list_iterator<T, T&> iterator;
-        typedef _list_iterator <T, const T&> const_iterator;
+        typedef _list_iterator<T, T &, T *> iterator;
+        typedef _list_iterator<T, const T &, const T *> const_iterator;
 
         iterator begin() {
             return iterator(_head->_next);
@@ -102,12 +122,6 @@ namespace wyp {
 
         const_iterator end() const {
             return const_iterator(_head);
-        }
-
-        void empty_initialize(){
-            _head = new node(T());
-            _head->_next = _head;
-            _head->_prev = _head;
         }
 
         void push_back(const T val) {
@@ -145,6 +159,8 @@ namespace wyp {
             prev->_next = new_node;
             cur->_prev = new_node;
 
+            ++_size;
+
             return iterator(new_node);
         }
 
@@ -159,6 +175,8 @@ namespace wyp {
 
             delete pos._p_node;
 
+            --_size;
+
             return iterator(next);
         }
 
@@ -169,6 +187,16 @@ namespace wyp {
             }
         }
 
+        size_t size() const {
+            return _size;
+        }
+
+        bool empty() const {
+            return _head->_next == _head;
+        }
+
+#if 0
+        深拷贝传统写法
         list() {
             empty_initialize();
         }
@@ -191,6 +219,43 @@ namespace wyp {
             return *this;
         }
 
+#endif
+
+        void empty_initialize() {
+            _head = new node(T());
+            _head->_next = _head;
+            _head->_prev = _head;
+        }
+
+        void swap(list<T> &lt) {
+            std::swap(_head, lt._head);
+            std::swap(_size, lt._size);
+        }
+
+        template<class InputIterator>
+        list(InputIterator first, InputIterator last) {
+            empty_initialize();
+            while (first != last) {
+                push_back(*first);
+                ++first;
+            }
+        }
+
+        list() {
+            empty_initialize();
+        }
+
+        list(const list<T> &lt) {
+            empty_initialize();
+            list<T> tmp(lt.begin(), lt.end());
+            swap(tmp);
+        }
+
+        list<T> &operator=(list<T> lt) {
+            swap(lt);
+            return *this;
+        }
+
         ~list() {
             clear();
             delete _head;
@@ -199,6 +264,7 @@ namespace wyp {
 
     private:
         node *_head;
+        size_t _size;
     };
 
 }
