@@ -31,7 +31,7 @@ namespace wyp {
 
         Ref operator*() {
             Iterator tmp = _it;
-            return *(--_it);
+            return *(--tmp);
         }
 
         Ptr operator->() {
