@@ -5,6 +5,8 @@
 #ifndef LIST106_LIST_H
 #define LIST106_LIST_H
 
+#include "reverse_iterator.h"
+
 namespace wyp {
     template<class T>
     struct list_node {
@@ -107,6 +109,9 @@ namespace wyp {
     public:
         typedef _list_iterator<T, T &, T *> iterator;
         typedef _list_iterator<T, const T &, const T *> const_iterator;
+        typedef _reverse_iterator<iterator, T &, T *> reverse_iterator;
+        typedef _reverse_iterator<const_iterator, const T &, const T *> const_reverse_iterator;
+
 
         iterator begin() {
             return iterator(_head->_next);
@@ -122,6 +127,22 @@ namespace wyp {
 
         const_iterator end() const {
             return const_iterator(_head);
+        }
+
+        reverse_iterator rbegin() {
+            return reverse_iterator(end());
+        }
+
+        reverse_iterator rend() {
+            return reverse_iterator(begin());
+        }
+
+        const_reverse_iterator rbegin() const {
+            return const_reverse_iterator(end());
+        }
+
+        const_reverse_iterator rend() const {
+            return const_reverse_iterator(begin());
         }
 
         void push_back(const T val) {
